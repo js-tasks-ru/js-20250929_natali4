@@ -6,8 +6,12 @@
  */
 export function sortStrings(arr, param = 'asc') {
   if (param === 'asc') {
-    return arr.toSorted((a, b) => a.localeCompare(b, 'ru', { sensitivity: 'accent' }) > 0 ? 1 : -1);
+    const res = arr.toSorted((a, b) => a.localeCompare(b, 'ru', { sensitivity: 'accent' }) > 0 ? 1 : -1);
+    console.log(res);
+    return res;
   }
 
-  return arr.toSorted((a, b) => a.localeCompare(b, 'ru', { sensitivity: 'accent' }) > 0 ? -1 : 1);
+  const res = arr.toSorted((a, b) => a.localeCompare(b, 'ru', { sensitivity: 'accent' }) > 0 ? -1 : 1);
+  console.log(res);
+  return res;
 }
