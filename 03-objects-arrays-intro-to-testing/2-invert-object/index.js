@@ -7,7 +7,7 @@ export function invertObj(obj) {
   if (!obj) {
     return;
   }
-  let invertedObj = {};
+  const invertedObj = {};
   Object.entries(obj).forEach(([key, value]) => {
     invertedObj[value] = key;
   });

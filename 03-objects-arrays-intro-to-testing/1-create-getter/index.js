@@ -20,8 +20,7 @@ export function createGetter(path) {
     const keys = path.split('.');
 
     let value = {...obj};
-    for (let i = 0; i < keys.length; i++) {
-      const key = keys[i];
+    for (const key of keys) {
       value = getValueByKey(value, key);
     }
     return value;
