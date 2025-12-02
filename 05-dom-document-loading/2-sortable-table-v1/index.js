@@ -155,13 +155,13 @@ export default class SortableTable {
   }
 
   remove() {
-    this.element?.remove();
+    this.element.remove();
   }
 
   destroy() {
     this.remove();
-    this.element = null;
-    this.subElements = {};
+    this.subElements = null;
+    this._sortConfig = null;
   }
 }
 

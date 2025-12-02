@@ -27,7 +27,7 @@ export default class ColumnChart {
 
   _getColumns() {
     if (this._data.length === 0) {
-      return [];
+      return '';
     }
 
     const columnsData = this._getColumnsData();
@@ -65,15 +65,13 @@ export default class ColumnChart {
         </div>
       </div>`;
 
-    return container.querySelector('.column-chart');
+    return container.firstElementChild;
   }
   remove() {
-    if (!this.element) return;
     this.element.remove();
   }
   destroy() {
     this.remove();
-    this.element = null;
     this._data = null;
   }
 }

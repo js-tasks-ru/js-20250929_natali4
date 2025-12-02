@@ -38,10 +38,6 @@ export default class NotificationMessage {
       NotificationMessage.activeInstance.destroy();
     }
 
-    if (this._timerId) {
-      return;
-    }
-
     targetElement.append(this.element);
     NotificationMessage.activeInstance = this;
 
@@ -56,7 +52,7 @@ export default class NotificationMessage {
   }
   destroy() {
     this.remove();
-    this.element = null;
+
     clearTimeout(this._timerId);
 
     if (NotificationMessage.activeInstance === this) {
