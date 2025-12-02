@@ -160,8 +160,6 @@ export default class SortableTable {
 
   destroy() {
     this.remove();
-    this.subElements = null;
-    this._sortConfig = null;
   }
 }
 
