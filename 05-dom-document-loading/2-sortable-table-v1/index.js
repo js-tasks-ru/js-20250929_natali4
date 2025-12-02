@@ -1,10 +1,10 @@
 export default class SortableTable {
   constructor(headerConfig = [], data = []) {
     this.data = data;
-    this.sortedData = [...this.data];
+    this._sortedData = [...this.data];
     this.headerConfig = headerConfig;
-    this.headerMap = this._createHeaderMap();
-    this.sortConfig = null;
+    this._headerMap = this._createHeaderMap();
+    this._sortConfig = null;
     this.element = this._createElement();
     this.subElements = this._createSubElements();
   }
@@ -16,28 +16,6 @@ export default class SortableTable {
     }, {});
   }
 
-  _createCell(cellData, template) {
-    return template ? template(cellData) : `<div class="sortable-table__cell">${cellData}</div>`;
-  }
-  _createRow(rowData) {
-    const rowCells = Object.keys(this.headerMap).map(key => {
-      const cellData = rowData[key];
-      const template = this.headerMap[key]?.template;
-      return this._createCell(cellData, template) ;
-    }).join('\n');
-
-    return `<a href="/products/${rowData.id}" class="sortable-table__row">${rowCells}</a>`;
-  }
-  _createRows() {
-    return this.sortedData.map(row => this._createRow(row)).join('');
-  }
-  _createBody() {
-    const body = document.createElement("div");
-    body.classList.add("sortable-table__body");
-    body.setAttribute('data-element', 'body');
-    body.innerHTML = this._createRows();
-    return body;
-  }
   _createHeader() {
     const header = document.createElement('div');
     header.classList.add(...['sortable-table__header', 'sortable-table__row']);
@@ -49,11 +27,49 @@ export default class SortableTable {
         class="sortable-table__cell"
         data-id="${column.id}"
         data-sortable="${column.sortable}"
-        data-order="${this.sortConfig?.orderValue ?? ''}">
+        data-order="${this._sortConfig?.orderValue ?? ''}">
           <span>${column.title}</span>
         </div>`;
     }).join('');
     return header;
+  }
+
+  _createRowElement(rowData) {
+    const row = document.createElement("a");
+    row.href = `/products/${rowData.id}`;
+    row.classList.add("sortable-table__row");
+
+    Object.keys(this._headerMap).forEach(key => {
+      const cellData = rowData[key];
+      const template = this._headerMap[key]?.template;
+
+      const cellWrapper = document.createElement("div");
+      cellWrapper.innerHTML = template ? template(cellData) : `<div class="sortable-table__cell">${cellData}</div>`;
+
+      row.append(cellWrapper.firstElementChild);
+    });
+
+    return row;
+  }
+
+  _renderBody(body) {
+    body.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+
+    this._sortedData.forEach(rowData => {
+      fragment.append(this._createRowElement(rowData));
+    });
+
+    body.append(fragment);
+  }
+
+  _createBody() {
+    const body = document.createElement("div");
+    body.classList.add("sortable-table__body");
+    body.setAttribute('data-element', 'body');
+
+    this._renderBody(body);
+    return body;
   }
 
   _createElement() {
@@ -72,6 +88,7 @@ export default class SortableTable {
       body: this.element.querySelector('[data-element="body"]'),
     };
   }
+
   _getSortArrow() {
     const arrowContainer = document.createElement("div");
     arrowContainer.classList.add(...['sortable-table__sort-arrow']);
@@ -82,7 +99,7 @@ export default class SortableTable {
 
   _update() {
     const { header, body } = this.subElements;
-    const {fieldValue, orderValue} = this.sortConfig;
+    const {fieldValue, orderValue} = this._sortConfig;
 
     header.querySelector('[data-element="arrow"]')?.remove();
 
@@ -94,27 +111,16 @@ export default class SortableTable {
     sortedCell.setAttribute('data-order', orderValue);
     sortedCell.append(this._getSortArrow());
 
-    body.innerHTML = this._createRows();
-  }
-
-  sort(fieldValue, orderValue) {
-    const sameSort = this.sortConfig?.orderValue === orderValue && this.sortConfig?.fieldValue === fieldValue;
-    if (sameSort) {
-      return;
-    }
-
-    this.sortConfig = { fieldValue, orderValue };
-    this._applySort(fieldValue, orderValue);
-    this._update(fieldValue, orderValue);
+    this._renderBody(body);
   }
 
   _applySort() {
-    const {fieldValue, orderValue} = this.sortConfig;
+    const {fieldValue, orderValue} = this._sortConfig;
 
-    const sortType = this.headerMap[fieldValue]?.sortType;
+    const sortType = this._headerMap[fieldValue]?.sortType;
 
     const comparator = this._getComparator(fieldValue, orderValue, sortType);
-    this.sortedData = this.sortedData.sort(comparator);
+    this._sortedData = this._sortedData.sort(comparator);
   }
 
   _getComparator(fieldValue, orderValue, sortType) {
@@ -134,6 +140,18 @@ export default class SortableTable {
       const b = String(nextRow[fieldValue]);
       return a.localeCompare(b, ['ru', 'en'], { caseFirst: 'upper' }) * direction;
     };
+  }
+
+  sort(fieldValue, orderValue) {
+    const sameSort = this._sortConfig?.orderValue === orderValue && this._sortConfig?.fieldValue === fieldValue;
+    const column = this._headerMap[fieldValue];
+    if (sameSort || !column.sortable) {
+      return;
+    }
+
+    this._sortConfig = { fieldValue, orderValue };
+    this._applySort(fieldValue, orderValue);
+    this._update(fieldValue, orderValue);
   }
 
   remove() {
